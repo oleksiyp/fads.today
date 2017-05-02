@@ -109,7 +109,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    axios.get('/daily/20170430.json')
+    axios.get('daily/20170430.json')
     .then(res => {
       this.setState({loaded: true, daily: res.data});
     });
@@ -117,7 +117,7 @@ class App extends Component {
 
   dateChanged(dateObject) {
     const date = moment(dateObject).format("YYYYMMDD");
-    axios.get('/daily/' + date + '.json')
+    axios.get('daily/' + date + '.json')
     .then(res => {
       this.setState({loaded: true, daily: res.data});
     }).catch(err => {
@@ -156,7 +156,7 @@ class App extends Component {
           title="Top wikipedia" />
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
           <div className="md-grid">
-            <DateNavigator ref="dateNav" limitsUrl="/daily/limits.json" onChange={this.dateChanged} />
+            <DateNavigator ref="dateNav" limitsUrl="daily/limits.json" onChange={this.dateChanged} />
             {items}
           </div>
         </Swipeable>
