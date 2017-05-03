@@ -9,7 +9,12 @@ WebFontLoader.load({
   },
 });
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root')
-);
+function handleNewHash() {
+  var date = window.location.hash.replace(/^#\/?|\/$/g, '').split('/');
+  var application = <App date={date} />;
+  ReactDOM.render(application, document.getElementById('root'));
+}
+
+// Handle the initial route and browser navigation events
+handleNewHash()
+window.addEventListener('hashchange', handleNewHash, false);

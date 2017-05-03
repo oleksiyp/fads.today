@@ -5,7 +5,6 @@ import Helmet from 'react-helmet';
 import Button from 'react-md/lib/Buttons/Button';
 import DatePicker from 'react-md/lib/Pickers/DatePickerContainer';
 import Paper from 'react-md/lib/Papers';
-import FontIcon from 'react-md/lib/FontIcons';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -15,7 +14,7 @@ import LazyLoad from 'react-lazyload';
 class DateNavigator extends Component {
   constructor(props) {
     super(props);
-    this.state = {hasLimits: false, value: null, limits: {min: null, max: null}};
+    this.state = {hasLimits: false, value: this.props.value, limits: {min: null, max: null}};
     this.pickerChanged = this.pickerChanged.bind(this);
     this.backButton = this.backButton.bind(this);
     this.forwardButton = this.forwardButton.bind(this);
@@ -30,7 +29,7 @@ class DateNavigator extends Component {
         const parseDate = (str) => moment(str, "YYYYMMDD").toDate();
         const limits = {min: parseDate(res.data.min), max: parseDate(res.data.max)}
         this.setState(update(this.state, {$merge: {hasLimits: true, limits: limits}}));
-        this.changeDate(moment(new Date()));
+        this.changeDate(moment(this.state.value));
       });
     document.addEventListener("keydown", this.handleKeyDown, false);
   }
@@ -56,13 +55,11 @@ class DateNavigator extends Component {
     if (!this.state.hasLimits) return;
     dateObject = moment.max(dateObject, moment(this.state.limits.min));
     dateObject = moment.min(dateObject, moment(this.state.limits.max));
-    if (this.state.value == null || !moment(this.state.value).isSame(dateObject)) {
-      this.setState(update(this.state, {$merge:
-        {value: dateObject.toDate()}
-      }));
-      if (this.props.onChange) {
-        this.props.onChange(dateObject.toDate());
-      }
+    this.setState(update(this.state, {$merge:
+      {value: dateObject.toDate()}
+    }));
+    if (this.props.onChange) {
+      this.props.onChange(dateObject.toDate());
     }
   }
 
@@ -92,7 +89,7 @@ class DateNavigator extends Component {
          secondary
          disabled={!this.hasBackPages()}
          onClick={this.backButton}
-         className="fa fa-chevron-circle-left fa-2x"/>
+         iconClassName="fa fa-chevron-circle-left fa-2x"/>
       </div>
       <div style={{float:"left", width: "9em"}}>
        <DatePicker
@@ -111,7 +108,7 @@ class DateNavigator extends Component {
         secondary
         disabled={!this.hasForwardPages()}
         onClick={this.forwardButton}
-        className="fa fa-chevron-circle-right fa-2x"/>
+        iconClassName="fa fa-chevron-circle-right fa-2x"/>
      </div>
      </div>
     );
@@ -125,6 +122,15 @@ class App extends Component {
     this.dateChanged = this.dateChanged.bind(this);
     this.swippedLeft = this.swippedLeft.bind(this);
     this.swippedRight = this.swippedRight.bind(this);
+
+  }
+
+  dateOrToday() {
+    const date = moment(this.props.date, "YYYYMMDD");
+    if (date.isValid()) {
+      return date.toDate();
+    }
+    return new Date();
   }
 
   dateChanged(dateObject) {
@@ -132,6 +138,7 @@ class App extends Component {
     this.setState({loaded: false});
     axios.get('daily/' + date + '.json')
     .then(res => {
+      history.pushState(null,null,'#' + date);
       this.setState({loaded: true, daily: res.data});
     });
   }
@@ -155,8 +162,16 @@ class App extends Component {
             #{i+1}
             &nbsp; {item.label} ({item.lang})
            <br/> <br/>
-           <Button tooltipLabel="Open in Wikipedia" href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label} icon secondary className="fa fa-wikipedia-w fa-lg" />
-           <Button tooltipLabel="Open in Google" href={"https://google.com/search?q=" + item.label} icon secondary className="fa fa-google fa-lg" />
+           <Button tooltipLabel="Open in Wikipedia"
+             href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
+             icon
+             secondary
+             iconClassName="fa fa-wikipedia-w fa-lg" />
+           <Button tooltipLabel="Open in Google"
+             href={"https://google.com/search?q=" + item.label}
+             icon
+             secondary
+             iconClassName="fa fa-google fa-lg" />
         </Paper>
       );
     }
@@ -171,7 +186,7 @@ class App extends Component {
 
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
           <div className="md-grid">
-            <DateNavigator ref="dateNav" limitsUrl="daily/limits.json" onChange={this.dateChanged} />
+            <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily/limits.json" onChange={this.dateChanged} />
             {items}
           </div>
         </Swipeable>
