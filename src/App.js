@@ -89,7 +89,7 @@ class DateNavigator extends Component {
   render() {
     return (
       <div className="md-cell md-cell--12">
-      <div style={{float:"left", paddingTop: "3px"}}>
+      <div style={{float:"left", paddingTop: "2px"}}>
        <Button
          icon
          secondary
@@ -108,7 +108,7 @@ class DateNavigator extends Component {
          maxDate={this.state.limits.max}
          onChange={this.pickerChanged} />
      </div>
-     <div style={{float:"left", paddingTop: "3px"}}>
+     <div style={{float:"left", paddingTop: "2px"}}>
       <Button
         icon
         secondary
