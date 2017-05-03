@@ -177,6 +177,12 @@ class App extends Component {
              icon
              secondary
              iconClassName="fa fa-google fa-lg" />
+           <Button tooltipLabel="Open in YouTube"
+             href={"https://www.youtube.com/results?q=" + item.label}
+             icon
+             secondary
+             iconClassName="fa fa-youtube fa-lg" />
+
         </Paper>
       );
     }
@@ -186,7 +192,7 @@ class App extends Component {
         <Helmet title="Daily wikipedia top" />
         <Toolbar
           colored
-          title="Articles rated by page views"
+          title="Wikipedia daily top"
          />
 
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
