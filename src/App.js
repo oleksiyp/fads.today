@@ -5,6 +5,7 @@ import Helmet from 'react-helmet';
 import Button from 'react-md/lib/Buttons/Button';
 import DatePicker from 'react-md/lib/Pickers/DatePickerContainer';
 import Paper from 'react-md/lib/Papers';
+import FontIcon from 'react-md/lib/FontIcons';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -85,12 +86,13 @@ class DateNavigator extends Component {
   render() {
     return (
       <div className="md-cell md-cell--12">
-      <div style={{float:"left"}}>
+      <div style={{float:"left", paddingTop: "3px"}}>
        <Button
          icon
+         secondary
          disabled={!this.hasBackPages()}
          onClick={this.backButton}
-         className="fa fa-caret-square-o-left fa-lg"/>
+         className="fa fa-chevron-circle-left fa-2x"/>
       </div>
       <div style={{float:"left", width: "9em"}}>
        <DatePicker
@@ -103,12 +105,13 @@ class DateNavigator extends Component {
          maxDate={this.state.limits.max}
          onChange={this.pickerChanged} />
      </div>
-     <div style={{float:"left"}}>
+     <div style={{float:"left", paddingTop: "3px"}}>
       <Button
         icon
+        secondary
         disabled={!this.hasForwardPages()}
         onClick={this.forwardButton}
-        className="fa fa-caret-square-o-right fa-lg"/>
+        className="fa fa-chevron-circle-right fa-2x"/>
      </div>
      </div>
     );
@@ -145,26 +148,27 @@ class App extends Component {
     var items = "";
     if (this.state.loaded) {
       items = this.state.daily.map((item, i) =>
-        <Paper key={"paper"+i} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em"}}>
-          <a href={"https://google.com/search?q=" + item.label}>
+        <Paper key={"paper"+i} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}}>
           <LazyLoad height="200px">
-            <img src={item.thumbnail} alt={item.label} style={{width: "13em"}} />
+            <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
           </LazyLoad> <br/>
-          #{i+1} &nbsp;
-          {item.label}
-        </a>
+            #{i+1}
+            &nbsp; {item.label} ({item.lang})
+           <br/> <br/>
+           <Button tooltipLabel="Open in Wikipedia" href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label} icon secondary className="fa fa-wikipedia-w fa-lg" />
+           <Button tooltipLabel="Open in Google" href={"https://google.com/search?q=" + item.label} icon secondary className="fa fa-google fa-lg" />
         </Paper>
       );
     }
 
     return (
       <div>
-        <Helmet title="top-wikipedia.io" />
+        <Helmet title="Daily wikipedia top" />
         <Toolbar
           colored
-          title="Top wikipedia">
+          title="Articles rated by page views"
+         />
 
-        </Toolbar>
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
           <div className="md-grid">
             <DateNavigator ref="dateNav" limitsUrl="daily/limits.json" onChange={this.dateChanged} />
