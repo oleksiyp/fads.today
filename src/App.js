@@ -9,17 +9,18 @@ import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
 import Swipeable from 'react-swipeable'
+import LazyLoad from 'react-lazyload';
 
 class DateNavigator extends Component {
   constructor(props) {
     super(props);
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    this.state = {hasLimits: false, value: today, limits: {min: today, max: today}};
+    this.state = {hasLimits: false, value: null, limits: {min: null, max: null}};
     this.pickerChanged = this.pickerChanged.bind(this);
     this.backButton = this.backButton.bind(this);
     this.forwardButton = this.forwardButton.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.hasBackPages = this.hasBackPages.bind(this);
+    this.hasForwardPages = this.hasForwardPages.bind(this);
   }
 
   componentDidMount() {
@@ -28,15 +29,16 @@ class DateNavigator extends Component {
         const parseDate = (str) => moment(str, "YYYYMMDD").toDate();
         const limits = {min: parseDate(res.data.min), max: parseDate(res.data.max)}
         this.setState(update(this.state, {$merge: {hasLimits: true, limits: limits}}));
+        this.changeDate(moment(new Date()));
       });
     document.addEventListener("keydown", this.handleKeyDown, false);
   }
 
   handleKeyDown(event) {
-    if(event.keyCode == 37) {
+    if(event.keyCode === 37) {
       this.backButton();
     }
-    if (event.keyCode == 39) {
+    if (event.keyCode === 39) {
       this.forwardButton();
     }
   }
@@ -51,14 +53,15 @@ class DateNavigator extends Component {
 
   changeDate(dateObject) {
     if (!this.state.hasLimits) return;
-    if (moment(this.state.limits.min).isSameOrBefore(dateObject) &&
-      dateObject.isSameOrBefore(moment(this.state.limits.max))) {
-        this.setState(update(this.state, {$merge:
-          {value: dateObject.toDate()}
-        }));
-        if (this.props.onChange) {
-          this.props.onChange(dateObject.toDate());
-        }
+    dateObject = moment.max(dateObject, moment(this.state.limits.min));
+    dateObject = moment.min(dateObject, moment(this.state.limits.max));
+    if (this.state.value == null || !moment(this.state.value).isSame(dateObject)) {
+      this.setState(update(this.state, {$merge:
+        {value: dateObject.toDate()}
+      }));
+      if (this.props.onChange) {
+        this.props.onChange(dateObject.toDate());
+      }
     }
   }
 
@@ -71,17 +74,29 @@ class DateNavigator extends Component {
     }
   }
 
+  hasBackPages() {
+    return this.state.hasLimits && moment(this.state.limits.min).isBefore(this.state.value)
+  }
+
+   hasForwardPages() {
+    return this.state.hasLimits && moment(this.state.limits.max).isAfter(this.state.value)
+  }
+
   render() {
     return (
       <div className="md-cell md-cell--12">
       <div style={{float:"left"}}>
        <Button
          icon
-         disabled={!this.state.hasLimits}
-         onClick={this.backButton}>arrow_back</Button>
+         disabled={!this.hasBackPages()}
+         onClick={this.backButton}
+         className="fa fa-caret-square-o-left fa-lg"/>
       </div>
-      <div style={{float:"left"}}>
+      <div style={{float:"left", width: "9em"}}>
        <DatePicker
+         id="date"
+         inline={true}
+         fullWidth={false}
          disabled={!this.state.hasLimits}
          value={this.state.value}
          minDate={this.state.limits.min}
@@ -91,8 +106,9 @@ class DateNavigator extends Component {
      <div style={{float:"left"}}>
       <Button
         icon
-        disabled={!this.state.hasLimits}
-        onClick={this.forwardButton}>arrow_forward</Button>
+        disabled={!this.hasForwardPages()}
+        onClick={this.forwardButton}
+        className="fa fa-caret-square-o-right fa-lg"/>
      </div>
      </div>
     );
@@ -108,39 +124,32 @@ class App extends Component {
     this.swippedRight = this.swippedRight.bind(this);
   }
 
-  componentDidMount() {
-    axios.get('daily/20170430.json')
-    .then(res => {
-      this.setState({loaded: true, daily: res.data});
-    });
-  }
-
   dateChanged(dateObject) {
     const date = moment(dateObject).format("YYYYMMDD");
+    this.setState({loaded: false});
     axios.get('daily/' + date + '.json')
     .then(res => {
       this.setState({loaded: true, daily: res.data});
-    }).catch(err => {
-      this.setState({loaded: false});
     });
-
   }
 
   swippedLeft(e) {
-    this.refs.dateNav.backButton();
+    this.refs.dateNav.forwardButton();
   }
 
   swippedRight(e) {
-    this.refs.dateNav.forwardButton();
+    this.refs.dateNav.backButton();
   }
 
   render() {
     var items = "";
     if (this.state.loaded) {
       items = this.state.daily.map((item, i) =>
-        <Paper zDepth="1" className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "5px"}}>
-          <a href={"https://google.com/?q=" + item.label}>
-          <img src={item.thumbnail} width="150px" /> <br/>
+        <Paper key={"paper"+i} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em"}}>
+          <a href={"https://google.com/search?q=" + item.label}>
+          <LazyLoad height="200px">
+            <img src={item.thumbnail} alt={item.label} style={{width: "13em"}} />
+          </LazyLoad> <br/>
           #{i+1} &nbsp;
           {item.label}
         </a>
@@ -153,7 +162,9 @@ class App extends Component {
         <Helmet title="top-wikipedia.io" />
         <Toolbar
           colored
-          title="Top wikipedia" />
+          title="Top wikipedia">
+
+        </Toolbar>
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
           <div className="md-grid">
             <DateNavigator ref="dateNav" limitsUrl="daily/limits.json" onChange={this.dateChanged} />
