@@ -14,7 +14,7 @@ import LazyLoad from 'react-lazyload';
 class DateNavigator extends Component {
   constructor(props) {
     super(props);
-    this.state = {hasLimits: false, value: this.props.value, limits: {min: null, max: null}};
+    this.state = {hasLimits: false, value: null, limits: {min: null, max: null}};
     this.pickerChanged = this.pickerChanged.bind(this);
     this.backButton = this.backButton.bind(this);
     this.forwardButton = this.forwardButton.bind(this);
@@ -29,7 +29,7 @@ class DateNavigator extends Component {
         const parseDate = (str) => moment(str, "YYYYMMDD").toDate();
         const limits = {min: parseDate(res.data.min), max: parseDate(res.data.max)}
         this.setState(update(this.state, {$merge: {hasLimits: true, limits: limits}}));
-        this.changeDate(moment(this.state.value));
+        this.changeDate(moment(this.props.value));
       });
     document.addEventListener("keydown", this.handleKeyDown, false);
   }
@@ -53,8 +53,14 @@ class DateNavigator extends Component {
 
   changeDate(dateObject) {
     if (!this.state.hasLimits) return;
+
     dateObject = moment.max(dateObject, moment(this.state.limits.min));
     dateObject = moment.min(dateObject, moment(this.state.limits.max));
+
+    if (this.state.value != null && moment(this.state.value).isSame(dateObject)) {
+      return;
+    }
+
     this.setState(update(this.state, {$merge:
       {value: dateObject.toDate()}
     }));
@@ -122,7 +128,6 @@ class App extends Component {
     this.dateChanged = this.dateChanged.bind(this);
     this.swippedLeft = this.swippedLeft.bind(this);
     this.swippedRight = this.swippedRight.bind(this);
-
   }
 
   dateOrToday() {
