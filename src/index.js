@@ -10,7 +10,7 @@ WebFontLoader.load({
 });
 
 function handleNewHash() {
-  var date = window.location.hash.replace(/^#\/?|\/$/g, '').split('/');
+  var date = window.location.hash.replace(/^#\/?|\/$/g, '');
   var application = <App date={date} />;
   ReactDOM.render(application, document.getElementById('root'));
 }

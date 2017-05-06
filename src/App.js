@@ -34,6 +34,12 @@ class DateNavigator extends Component {
     document.addEventListener("keydown", this.handleKeyDown, false);
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState(update(this.state, {$merge:
+      {value: nextProps.value}
+    }));
+  }
+
   handleKeyDown(event) {
     if(event.keyCode === 37) {
       this.backButton();
@@ -61,21 +67,17 @@ class DateNavigator extends Component {
       return;
     }
 
-    this.setState(update(this.state, {$merge:
-      {value: dateObject.toDate()}
-    }));
     if (this.props.onChange) {
       this.props.onChange(dateObject.toDate());
+    } else {
+      this.setState(update(this.state, {$merge:
+        {value: dateObject}
+      }));
     }
   }
 
   pickerChanged(dateString, dateObject, event) {
-    this.setState(update(this.state, {$merge:
-      {value: dateObject}
-    }));
-    if (this.props.onChange) {
-      this.props.onChange(dateObject);
-    }
+    this.changeDate(moment(dateObject));
   }
 
   hasBackPages() {
@@ -124,14 +126,21 @@ class DateNavigator extends Component {
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {loaded: false};
+    this.state = {loaded: false, date: this.props.date};
     this.dateChanged = this.dateChanged.bind(this);
     this.swippedLeft = this.swippedLeft.bind(this);
     this.swippedRight = this.swippedRight.bind(this);
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState(update(this.state, {$merge:
+      {date: nextProps.date}
+    }));
+    this.dateChanged(moment(nextProps.date, "YYYYMMDD"));
+  }
+
   dateOrToday() {
-    const date = moment(this.props.date, "YYYYMMDD");
+    const date = moment(this.state.date, "YYYYMMDD");
     if (date.isValid()) {
       return date.toDate();
     }
@@ -140,11 +149,17 @@ class App extends Component {
 
   dateChanged(dateObject) {
     const date = moment(dateObject).format("YYYYMMDD");
-    this.setState({loaded: false});
+    this.setState(update(this.state, {$merge:
+      {loaded: false, date: date}
+    }));
     axios.get('daily/' + date + '.json')
     .then(res => {
       history.pushState(null,null,'#' + date);
-      this.setState({loaded: true, daily: res.data});
+      eval("ga('set', 'page', location.pathname+location.search+location.hash);");
+      eval("ga('send', 'pageview');");
+      this.setState(update(this.state, {$merge:
+        {loaded: true, daily: res.data}
+      }));
     });
   }
 
@@ -192,7 +207,7 @@ class App extends Component {
         <Helmet title="Daily wikipedia top" />
         <Toolbar
           colored
-          title="Wikipedia daily top"
+          title="Daily wikipedia top"
          />
 
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
