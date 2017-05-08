@@ -177,7 +177,9 @@ class App extends Component {
       items = this.state.daily.map((item, i) =>
         <Paper key={"paper"+i} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}}>
           <LazyLoad height="200px">
-            <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
+            <div style={{maxHeight: "26em", overflow: "hidden"}}>
+              <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
+            </div>
           </LazyLoad> <br/>
             #{i+1}
             &nbsp; {item.label} ({item.lang})
