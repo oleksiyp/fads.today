@@ -17,9 +17,4 @@ function handleNewHash() {
 
 // Handle the initial route and browser navigation events
 window.addEventListener('hashchange', handleNewHash, false);
-
-if ("standalone" in window.navigator && window.navigator.standalone){
-  window.location = '/top-wikipedia/';
-} else {
-  handleNewHash()
-}
+handleNewHash()

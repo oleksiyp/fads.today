@@ -155,8 +155,8 @@ class App extends Component {
     axios.get('daily/' + date + '.json')
     .then(res => {
       history.pushState(null,null,'#' + date);
-      eval("ga('set', 'page', location.pathname+location.search+location.hash);");
-      eval("ga('send', 'pageview');");
+      window.ga('set', 'page', location.pathname+location.search+location.hash);
+      window.ga('send', 'pageview');
       this.setState(update(this.state, {$merge:
         {loaded: true, daily: res.data}
       }));
