@@ -123,6 +123,39 @@ class DateNavigator extends Component {
   }
 }
 
+
+class Card extends Component {
+  render() {
+    return (
+      <Paper key={"paper"+this.props.nCnt} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}}>
+        <LazyLoad height="200px">
+          <div style={{maxHeight: "26em", overflow: "hidden"}}>
+            <img src={this.props.item.thumbnail} alt={this.props.item.label} style={{width: "88%"}} />
+          </div>
+        </LazyLoad> <br/>
+          #{this.props.nCnt}
+          &nbsp; {this.props.item.label} ({this.props.item.lang})
+         <br/> <br/>
+         <Button tooltipLabel="Open in Wikipedia"
+           href={"https://" + this.props.item.lang + ".wikipedia.org/wiki/Special:Search?search=" + this.props.item.label}
+           icon
+           secondary
+           iconClassName="fa fa-wikipedia-w fa-lg" />
+         <Button tooltipLabel="Open in Google"
+           href={"https://google.com/search?q=" + this.props.item.label}
+           icon
+           secondary
+           iconClassName="fa fa-google fa-lg" />
+         <Button tooltipLabel="Open in YouTube"
+           href={"https://www.youtube.com/results?q=" + this.props.item.label}
+           icon
+           secondary
+           iconClassName="fa fa-youtube fa-lg" />
+      </Paper>
+    );
+  }
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -152,13 +185,13 @@ class App extends Component {
     this.setState(update(this.state, {$merge:
       {loaded: false, date: date}
     }));
-    axios.get('daily/' + date + '.json')
+    axios.get('daily_cat/' + date + '.json')
     .then(res => {
       history.pushState(null,null,'#' + date);
       window.ga('set', 'page', location.pathname+location.search+location.hash);
       window.ga('send', 'pageview');
       this.setState(update(this.state, {$merge:
-        {loaded: true, daily: res.data}
+        {loaded: true, dailyCats: res.data}
       }));
     });
   }
@@ -173,35 +206,21 @@ class App extends Component {
 
   render() {
     var items = "";
+    var cnt = 1;
     if (this.state.loaded) {
-      items = this.state.daily.map((item, i) =>
-        <Paper key={"paper"+i} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}}>
-          <LazyLoad height="200px">
-            <div style={{maxHeight: "26em", overflow: "hidden"}}>
-              <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
+      items = this.state.dailyCats.map((cat, i) => {
+        const recordPapers = cat.records.map((record, j) =>
+          <Card item={record} nCnt={cnt++} />
+        );
+        return (
+          <div className="md-grid">
+            <div className="md-cell md-cell--12">
+              <h4>{cat.category} ({cat.lang})</h4>
             </div>
-          </LazyLoad> <br/>
-            #{i+1}
-            &nbsp; {item.label} ({item.lang})
-           <br/> <br/>
-           <Button tooltipLabel="Open in Wikipedia"
-             href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
-             icon
-             secondary
-             iconClassName="fa fa-wikipedia-w fa-lg" />
-           <Button tooltipLabel="Open in Google"
-             href={"https://google.com/search?q=" + item.label}
-             icon
-             secondary
-             iconClassName="fa fa-google fa-lg" />
-           <Button tooltipLabel="Open in YouTube"
-             href={"https://www.youtube.com/results?q=" + item.label}
-             icon
-             secondary
-             iconClassName="fa fa-youtube fa-lg" />
-
-        </Paper>
-      );
+            {recordPapers}
+          </div>
+        );
+      });
     }
 
     return (
@@ -214,9 +233,9 @@ class App extends Component {
 
         <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
           <div className="md-grid">
-            <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily/limits.json" onChange={this.dateChanged} />
-            {items}
+            <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily_cat/limits.json" onChange={this.dateChanged} />
           </div>
+          {items}
         </Swipeable>
       </div>
     );
