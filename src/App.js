@@ -139,16 +139,25 @@ class Card extends Component {
          <br/> <br/>
          <Button tooltipLabel="Open in Wikipedia"
            href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
+           target="topic-window"
            icon
            secondary
            iconClassName="fa fa-wikipedia-w fa-lg" />
+         <Button tooltipLabel="Open in Google News"
+           href={"https://news.google.com/?q=" + item.label}
+           target="topic-window"
+           icon
+           secondary
+           iconClassName="fa fa-newspaper-o fa-lg" />
          <Button tooltipLabel="Open in Google"
            href={"https://google.com/search?q=" + item.label}
+           target="topic-window"
            icon
            secondary
            iconClassName="fa fa-google fa-lg" />
          <Button tooltipLabel="Open in YouTube"
            href={"https://www.youtube.com/results?q=" + item.label}
+           target="topic-window"
            icon
            secondary
            iconClassName="fa fa-youtube fa-lg" />
