@@ -5,6 +5,13 @@ import Helmet from 'react-helmet';
 import Button from 'react-md/lib/Buttons/Button';
 import DatePicker from 'react-md/lib/Pickers/DatePickerContainer';
 import Paper from 'react-md/lib/Papers';
+import ListItem from 'react-md/lib/Lists/ListItem';
+import Avatar from 'react-md/lib/Avatars';
+import Drawer from 'react-md/lib/Drawers';
+import Divider from 'react-md/lib/Dividers';
+import CardTitle from 'react-md/lib/Cards/CardTitle';
+import Media from 'react-md/lib/Media/Media';
+import MediaOverlay from 'react-md/lib/Media/MediaOverlay';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -124,7 +131,65 @@ class DateNavigator extends Component {
 }
 
 
+class NewsSidePanel extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {newsDrawerVisible: false};
+    this.toggleNewsDrawer = this.toggleNewsDrawer.bind(this);
+  }
+
+  toggleNewsDrawer(visible) {
+    this.setState({newsDrawerVisible: visible});
+  }
+
+  render() {
+    const news = this.props["news"] ? this.props.news : [];
+    const newsList = news.map((news, i) => {
+      return (
+            <Paper zDepth={1} className="md-grid md-cell md-cell--12">
+              <div className="md-cell md-cell--12">
+                <Button label={news.title} onClick={() => window.location = news.url} />
+              </div>
+              <div className="md-cell md-cell--12">
+                <Media aspectRatio="4-3">
+                  <img src={news.urlToImage} role="presentation" />
+                </Media>
+              </div>
+              <div className="md-cell md-cell--12">
+                {news.description}
+              </div>
+            </Paper>
+        );
+    });
+    newsList.push(<Divider key="div" />);
+    newsList.push(<Button key="poweredby"
+               href="https://newsapi.org"
+               primary
+               style={{float: "right"}}
+               label="Powered by newsapi.org" /> );
+
+    return (
+       <Drawer
+         visible={this.state.newsDrawerVisible}
+         position="left"
+         closeOnNavItemClick={false}
+         navItems={newsList}
+         onVisibilityToggle={this.toggleNewsDrawer}
+         type={Drawer.DrawerTypes.TEMPORARY}
+         style={{ zIndex: 100 }}
+         className="md-grid"
+         header={
+             <Toolbar
+               title={this.props.title}
+               actions={<Button icon onClick={() => this.toggleNewsDrawer(false)}>arrow_back</Button>}
+               className="md-divider-border md-divider-border--bottom"
+             /> }
+         />);
+  }
+}
+
 class Card extends Component {
+
   render() {
     const item = this.props.item;
     return (
@@ -143,14 +208,17 @@ class Card extends Component {
            icon
            secondary
            iconClassName="fa fa-wikipedia-w fa-lg" />
+         {
+           item.news.length !== 0 ?
+            <Button tooltipLabel="Open News"
+             onClick={() => this.refs.newsSidePanel.toggleNewsDrawer(true)}
+             target="topic-window"
+             icon
+             secondary
+             iconClassName="fa fa-newspaper-o fa-lg" /> : ""
+         }
          <Button tooltipLabel="Open in Google News"
-           href={"https://news.google.com/?q=" + item.label}
-           target="topic-window"
-           icon
-           secondary
-           iconClassName="fa fa-newspaper-o fa-lg" />
-         <Button tooltipLabel="Open in Google"
-           href={"https://google.com/search?q=" + item.label}
+           href={"https://google.com/search?tbm=nws&q=" + item.label}
            target="topic-window"
            icon
            secondary
@@ -161,6 +229,8 @@ class Card extends Component {
            icon
            secondary
            iconClassName="fa fa-youtube fa-lg" />
+
+         <NewsSidePanel ref="newsSidePanel" news={item.news} title={item.label} />
       </Paper>
     );
   }
@@ -220,10 +290,10 @@ class App extends Component {
     if (this.state.loaded) {
       items = this.state.dailyCats.map((cat, i) => {
         const recordPapers = cat.records.map((record, j) =>
-          <Card item={record} nCnt={cnt++} />
+          <Card key={"card" + cnt++} item={record} />
         );
         return (
-          <div className="md-grid">
+          <div key={"card" + i} className="md-grid">
             <div className="md-cell md-cell--12">
               <h4>{cat.category} ({cat.lang})</h4>
             </div>
@@ -241,7 +311,7 @@ class App extends Component {
           title="Daily wikipedia top"
          />
 
-        <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} >
+       <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} >
           <div className="md-grid">
             <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily/limits.json" onChange={this.dateChanged} />
           </div>
