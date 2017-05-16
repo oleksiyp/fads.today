@@ -5,13 +5,9 @@ import Helmet from 'react-helmet';
 import Button from 'react-md/lib/Buttons/Button';
 import DatePicker from 'react-md/lib/Pickers/DatePickerContainer';
 import Paper from 'react-md/lib/Papers';
-import ListItem from 'react-md/lib/Lists/ListItem';
-import Avatar from 'react-md/lib/Avatars';
 import Drawer from 'react-md/lib/Drawers';
 import Divider from 'react-md/lib/Dividers';
-import CardTitle from 'react-md/lib/Cards/CardTitle';
 import Media from 'react-md/lib/Media/Media';
-import MediaOverlay from 'react-md/lib/Media/MediaOverlay';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -148,7 +144,7 @@ class NewsSidePanel extends Component {
       return (
             <Paper zDepth={1} className="md-grid md-cell md-cell--12">
               <div className="md-cell md-cell--12">
-                <Button label={news.title} onClick={() => window.location = news.url} />
+                <Button primary label={news.title} onClick={() => window.location = news.url} />
               </div>
               <div className="md-cell md-cell--12">
                 <Media aspectRatio="4-3">
@@ -202,7 +198,7 @@ class Card extends Component {
           #{item.position+1}
           &nbsp; {item.label} ({item.lang})
          <br/> <br/>
-         <Button tooltipLabel="Open in Wikipedia"
+         <Button tooltipLabel="Open Wikipedia"
            href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
            target="topic-window"
            icon
@@ -217,13 +213,13 @@ class Card extends Component {
              secondary
              iconClassName="fa fa-newspaper-o fa-lg" /> : ""
          }
-         <Button tooltipLabel="Open in Google News"
+         <Button tooltipLabel="Search in Google News"
            href={"https://google.com/search?tbm=nws&q=" + item.label}
            target="topic-window"
            icon
            secondary
            iconClassName="fa fa-google fa-lg" />
-         <Button tooltipLabel="Open in YouTube"
+         <Button tooltipLabel="Open YouTube"
            href={"https://www.youtube.com/results?q=" + item.label}
            target="topic-window"
            icon
