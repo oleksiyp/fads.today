@@ -1,8 +1,8 @@
 {
-  "name": "top-wikipedia.github.io",
+  "name": "fads.today",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://oleksiyp.github.io/top-wikipedia/",
+  "homepage": "http://fads.today",
   "dependencies": {
     "axios": "^0.14.0",
     "font-awesome": "^4.7.0",
