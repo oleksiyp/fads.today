@@ -301,10 +301,11 @@ class App extends Component {
 
     return (
       <div>
-        <Helmet title="Daily wikipedia top" />
+        <Helmet title="fads today" />
         <Toolbar
           colored
-          title="Daily wikipedia top"
+          title={"What is happening on " + moment(this.dateOrToday()).format("DD MMM YYYY ") + "?"}
+          style={{background: "url('toolbar-bg.jpg')"}}
          />
 
        <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} >
@@ -313,6 +314,18 @@ class App extends Component {
           </div>
           {items}
         </Swipeable>
+        <Toolbar
+          style={{background: "url('toolbar-bg-bottom.jpg')", height: "160px"}}
+          actions={[<Button
+                     href="https://wikipedia.org"
+                     secondary
+                     raised
+                     label="Powered by wikipedia.org" />,
+                   <Button href="https://newsapi.org"
+                            secondary
+                            raised
+                            label="newsapi.org" style={{marginLeft: "10px"}}/>]}
+         />
       </div>
     );
     }
