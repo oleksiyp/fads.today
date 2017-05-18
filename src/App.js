@@ -196,7 +196,7 @@ class Card extends Component {
           </div>
         </LazyLoad> <br/>
           #{item.position+1}
-          &nbsp; {item.label} ({item.lang})
+          &nbsp; {item.label} <sub>({item.lang})</sub>
          <br/> <br/>
          <Button tooltipLabel="Open Wikipedia"
            href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
@@ -291,7 +291,8 @@ class App extends Component {
         return (
           <div key={"card" + i} className="md-grid">
             <div className="md-cell md-cell--12">
-              <h4>{cat.category} ({cat.lang})</h4>
+              { cat.category === "" ? <h3>Free out of category</h3> :
+              <h3>{cat.category} <sub>({cat.lang})</sub></h3> }
             </div>
             {recordPapers}
           </div>
