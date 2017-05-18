@@ -8,6 +8,7 @@ import Paper from 'react-md/lib/Papers';
 import Drawer from 'react-md/lib/Drawers';
 import Divider from 'react-md/lib/Dividers';
 import Media from 'react-md/lib/Media/Media';
+import CircularProgress from 'react-md/lib/Progress/CircularProgress';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -130,19 +131,45 @@ class DateNavigator extends Component {
 class NewsSidePanel extends Component {
   constructor(props) {
     super(props);
-    this.state = {newsDrawerVisible: false};
+    this.state = {newsDrawerVisible: false, loading: true, label: ""};
     this.toggleNewsDrawer = this.toggleNewsDrawer.bind(this);
+    this.renderNews = this.renderNews.bind(this);
+  }
+
+  openNews(date, resource, label) {
+    this.setState(update(this.state, {$merge:
+      {newsDrawerVisible: true, loading: true, label: label}
+    }));
+    // axios.get('daily_cat/' + date + '/' + resource + ".json")
+    axios.get('daily_cat/' + date + ".json")
+    .then(res => {
+
+      var news = [];
+      for (const cat of res.data) {
+        for (const rec of cat.records) {
+          if (rec.resource === resource) {
+            news = rec.news;
+          }
+        }
+      }
+
+      this.setState(update(this.state, {$merge:
+        {loading: false, news: news}
+      }));
+    });
   }
 
   toggleNewsDrawer(visible) {
-    this.setState({newsDrawerVisible: visible});
+    this.setState(update(this.state, {$merge:
+      {newsDrawerVisible: visible}
+    }));
   }
 
-  render() {
-    const news = this.props["news"] ? this.props.news : [];
+  renderNews() {
+    const news = this.state.news;
     const newsList = news.map((news, i) => {
       return (
-            <Paper zDepth={1} className="md-grid md-cell md-cell--12">
+            <Paper key={"news" + i} zDepth={1} className="md-grid md-cell md-cell--12">
               <div className="md-cell md-cell--12">
                 <Button primary label={news.title} onClick={() => window.location = news.url} />
               </div>
@@ -160,27 +187,34 @@ class NewsSidePanel extends Component {
     newsList.push(<Divider key="div" />);
     newsList.push(<Button key="poweredby"
                href="https://newsapi.org"
+               flat
                primary
                style={{float: "right"}}
                label="Powered by newsapi.org" /> );
+    return newsList;
+  }
+
+  render() {
+    const content = this.state.loading ? [ <CircularProgress id="newsLoader" key="newsLoader" /> ] : this.renderNews()
 
     return (
        <Drawer
          visible={this.state.newsDrawerVisible}
          position="left"
          closeOnNavItemClick={false}
-         navItems={newsList}
          onVisibilityToggle={this.toggleNewsDrawer}
          type={Drawer.DrawerTypes.TEMPORARY}
          style={{ zIndex: 100 }}
          className="md-grid"
          header={
              <Toolbar
-               title={this.props.title}
+               title={ <div style={{fontSize: "10px"}}> {this.state.label} </div> }
                actions={<Button icon onClick={() => this.toggleNewsDrawer(false)}>arrow_back</Button>}
                className="md-divider-border md-divider-border--bottom"
              /> }
-         />);
+         >
+         {content}
+       </Drawer>);
   }
 }
 
@@ -207,7 +241,7 @@ class Card extends Component {
          {
            item.news.length !== 0 ?
             <Button tooltipLabel="Open News"
-             onClick={() => this.refs.newsSidePanel.toggleNewsDrawer(true)}
+             onClick={this.props.onNewsButtonClicked}
              target="topic-window"
              icon
              secondary
@@ -225,8 +259,6 @@ class Card extends Component {
            icon
            secondary
            iconClassName="fa fa-youtube fa-lg" />
-
-         <NewsSidePanel ref="newsSidePanel" news={item.news} title={item.label} />
       </Paper>
     );
   }
@@ -239,6 +271,7 @@ class App extends Component {
     this.dateChanged = this.dateChanged.bind(this);
     this.swippedLeft = this.swippedLeft.bind(this);
     this.swippedRight = this.swippedRight.bind(this);
+    this.newsButtonClicked = this.newsButtonClicked.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -272,6 +305,11 @@ class App extends Component {
     });
   }
 
+  newsButtonClicked(record) {
+    const date = moment(this.dateOrToday()).format("YYYYMMDD");
+    this.refs.newsSidePanel.openNews(date, record.resource, record.label);
+  }
+
   swippedLeft(e) {
     this.refs.dateNav.forwardButton();
   }
@@ -286,7 +324,7 @@ class App extends Component {
     if (this.state.loaded) {
       items = this.state.dailyCats.map((cat, i) => {
         const recordPapers = cat.records.map((record, j) =>
-          <Card key={"card" + cnt++} item={record} />
+          <Card key={"card" + cnt++} item={record} onNewsButtonClicked={() => this.newsButtonClicked(record)} />
         );
         return (
           <div key={"card" + i} className="md-grid">
@@ -305,8 +343,8 @@ class App extends Component {
         <Helmet title="fads today" />
         <Toolbar
           colored
-          title={"What is happening on " + moment(this.dateOrToday()).format("DD MMM YYYY ") + "?"}
-          style={{background: "url('toolbar-bg.jpg')"}}
+          title={<div style={{fontSize: "17px"}}> {"What is happening on " + moment(this.dateOrToday()).format("DD MMM YYYY")} </div>}
+          style={{background: "url('toolbar-bg.jpg')", fontSize: "18px"}}
          />
 
        <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} >
@@ -315,6 +353,7 @@ class App extends Component {
           </div>
           {items}
         </Swipeable>
+        <NewsSidePanel ref="newsSidePanel" />
         <Toolbar
           style={{background: "url('toolbar-bg-bottom.jpg')", height: "160px"}}
           actions={[<Button
