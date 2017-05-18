@@ -9,6 +9,7 @@ import Drawer from 'react-md/lib/Drawers';
 import Divider from 'react-md/lib/Dividers';
 import Media from 'react-md/lib/Media/Media';
 import CircularProgress from 'react-md/lib/Progress/CircularProgress';
+import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -169,7 +170,7 @@ class NewsSidePanel extends Component {
     const news = this.state.news;
     const newsList = news.map((news, i) => {
       return (
-            <Paper key={"news" + i} zDepth={1} className="md-grid md-cell md-cell--12">
+            <Paper key={"news" + i} zDepth={1} className="md-grid md-cell md-cell--12" style={{overflow: "hidden"}} >
               <div className="md-cell md-cell--12">
                 <Button primary label={news.title} onClick={() => window.location = news.url} />
               </div>
@@ -201,6 +202,7 @@ class NewsSidePanel extends Component {
        <Drawer
          visible={this.state.newsDrawerVisible}
          position="left"
+         navItems={content}
          closeOnNavItemClick={false}
          onVisibilityToggle={this.toggleNewsDrawer}
          type={Drawer.DrawerTypes.TEMPORARY}
@@ -208,13 +210,11 @@ class NewsSidePanel extends Component {
          className="md-grid"
          header={
              <Toolbar
-               title={ <div style={{fontSize: "10px"}}> {this.state.label} </div> }
-               actions={<Button icon onClick={() => this.toggleNewsDrawer(false)}>arrow_back</Button>}
+               title={ <span style={{fontSize: "15px", whiteSpace: "normal"}}> {this.state.label} </span> }
+               actions={<Button icon onClick={() => this.toggleNewsDrawer(false)} iconClassName="fa fa-caret-left fa-lg" />}
                className="md-divider-border md-divider-border--bottom"
              /> }
-         >
-         {content}
-       </Drawer>);
+         />);
   }
 }
 
@@ -223,15 +223,17 @@ class Card extends Component {
   render() {
     const item = this.props.item;
     return (
-      <Paper key={"paper"+item.position} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}}>
-        <LazyLoad height="200px">
-          <div style={{maxHeight: "26em", overflow: "hidden"}}>
-            <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
-          </div>
-        </LazyLoad> <br/>
-          #{item.position+1}
-          &nbsp; {item.label} <sub>({item.lang})</sub>
-         <br/> <br/>
+      <Paper key={"paper"+item.position} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}} >
+        <div style={{overflow: "hidden"}}>
+          <LazyLoad height="200px">
+            <div style={{maxHeight: "26em", overflow: "hidden"}}>
+              <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
+            </div>
+          </LazyLoad> <br/>
+            #{item.position+1}
+            &nbsp; {item.label} <sub>({item.lang})</sub>
+           <br/> <br/>
+         </div>
          <Button tooltipLabel="Open Wikipedia"
            href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
            target="topic-window"
@@ -267,7 +269,7 @@ class Card extends Component {
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {loaded: false, date: this.props.date};
+    this.state = {loading: true, date: this.props.date};
     this.dateChanged = this.dateChanged.bind(this);
     this.swippedLeft = this.swippedLeft.bind(this);
     this.swippedRight = this.swippedRight.bind(this);
@@ -289,10 +291,12 @@ class App extends Component {
     return new Date();
   }
 
+
+
   dateChanged(dateObject) {
     const date = moment(dateObject).format("YYYYMMDD");
     this.setState(update(this.state, {$merge:
-      {loaded: false, date: date}
+      {loading: true, date: date}
     }));
     axios.get('daily_cat/' + date + '.json')
     .then(res => {
@@ -300,7 +304,7 @@ class App extends Component {
       window.ga('set', 'page', location.pathname+location.search+location.hash);
       window.ga('send', 'pageview');
       this.setState(update(this.state, {$merge:
-        {loaded: true, dailyCats: res.data}
+        {loading: false, dailyCats: res.data}
       }));
     });
   }
@@ -321,16 +325,18 @@ class App extends Component {
   render() {
     var items = "";
     var cnt = 1;
-    if (this.state.loaded) {
+    if (this.state.loading) {
+      <LinearProgress />
+    } else {
       items = this.state.dailyCats.map((cat, i) => {
         const recordPapers = cat.records.map((record, j) =>
           <Card key={"card" + cnt++} item={record} onNewsButtonClicked={() => this.newsButtonClicked(record)} />
         );
         return (
-          <div key={"card" + i} className="md-grid">
+          <div key={"card" + i} className="md-grid" style={{overflow: "hidden"}}>
             <div className="md-cell md-cell--12">
               { cat.category === "" ? <h3>Free out of category</h3> :
-              <h3>{cat.category} <sub>({cat.lang})</sub></h3> }
+              <h3 style={{whiteSpace: "normal"}}>{cat.category} <sub>({cat.lang})</sub></h3> }
             </div>
             {recordPapers}
           </div>
@@ -343,11 +349,11 @@ class App extends Component {
         <Helmet title="fads today" />
         <Toolbar
           colored
-          title={<div style={{fontSize: "17px"}}> {"What is happening on " + moment(this.dateOrToday()).format("DD MMM YYYY")} </div>}
+          title={<div style={{fontSize: "17px", overflow: "hidden"}}> {"What is happening on " + moment(this.dateOrToday()).format("DD MMM YYYY")} </div>}
           style={{background: "url('toolbar-bg.jpg')", fontSize: "18px"}}
          />
 
-       <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} >
+       <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} preventDefaultTouchmoveEvent={true}  >
           <div className="md-grid">
             <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily/limits.json" onChange={this.dateChanged} />
           </div>
