@@ -137,25 +137,14 @@ class NewsSidePanel extends Component {
     this.renderNews = this.renderNews.bind(this);
   }
 
-  openNews(date, resource, label) {
+  openNews(date, position, label) {
     this.setState(update(this.state, {$merge:
       {newsDrawerVisible: true, loading: true, label: label}
     }));
-    // axios.get('daily_cat/' + date + '/' + resource + ".json")
-    axios.get('daily_cat/' + date + ".json")
+    axios.get('daily_cat/' + date + '/' + position + ".json")
     .then(res => {
-
-      var news = [];
-      for (const cat of res.data) {
-        for (const rec of cat.records) {
-          if (rec.resource === resource) {
-            news = rec.news;
-          }
-        }
-      }
-
       this.setState(update(this.state, {$merge:
-        {loading: false, news: news}
+        {loading: false, news: res.data}
       }));
     });
   }
@@ -241,7 +230,7 @@ class Card extends Component {
            secondary
            iconClassName="fa fa-wikipedia-w fa-lg" />
          {
-           item.news.length !== 0 ?
+           item.newsCount > 0 ?
             <Button tooltipLabel="Open News"
              onClick={this.props.onNewsButtonClicked}
              target="topic-window"
@@ -311,7 +300,7 @@ class App extends Component {
 
   newsButtonClicked(record) {
     const date = moment(this.dateOrToday()).format("YYYYMMDD");
-    this.refs.newsSidePanel.openNews(date, record.resource, record.label);
+    this.refs.newsSidePanel.openNews(date, record.position, record.label);
   }
 
   swippedLeft(e) {
