@@ -10,6 +10,11 @@ import Divider from 'react-md/lib/Dividers';
 import Media from 'react-md/lib/Media/Media';
 import CircularProgress from 'react-md/lib/Progress/CircularProgress';
 import LinearProgress from 'react-md/lib/Progress/LinearProgress';
+import List from 'react-md/lib/Lists/List';
+import ListItem from 'react-md/lib/Lists/ListItem';
+import MenuButton from 'react-md/lib/Menus/MenuButton';
+import Dialog from 'react-md/lib/Dialogs';
+import FontIcon from 'react-md/lib/FontIcons';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
@@ -207,6 +212,56 @@ class NewsSidePanel extends Component {
   }
 }
 
+class MoreActions extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {visible: false};
+  }
+
+  toggleDialog(visible) {
+    this.setState({visible: visible});
+  }
+
+  render() {
+    const item = this.props.item
+    return (
+      <Button
+           icon
+           iconClassName="fa fa-ellipsis-h"
+           className="menu-example"
+           onClick={() => this.toggleDialog(true)}>
+       <Dialog
+         title="More actions"
+         onHide={() => this.toggleDialog(false)}
+         visible={this.state.visible} >
+         <List>
+           <ListItem
+             leftIcon={<FontIcon
+               iconClassName="fa fa-wikipedia-w"/>}
+               primaryText="Open Wikipedia"
+               onClick={() => window.location = "https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label} />
+           <ListItem
+             leftIcon={<FontIcon
+               iconClassName="fa fa-google"/>}
+             primaryText="Search Google News"
+             onClick={() => window.location = "https://google.com/search?tbm=nws&q=" + item.label}/>
+           <ListItem
+             leftIcon={<FontIcon
+               iconClassName="fa fa-youtube"/>}
+             primaryText="Search YouTube"
+             onClick={() => window.location = "https://www.youtube.com/results?q=" + item.label} />
+           <ListItem
+             leftIcon={<FontIcon
+               iconClassName="fa fa-twitter"/>}
+             primaryText="Search Twitter"
+             onClick={() => window.location = "https://twitter.com/search?q=" + item.label} />
+           </List>
+         </Dialog>
+       </Button>
+    );
+   }
+}
+
 class Card extends Component {
 
   render() {
@@ -227,12 +282,6 @@ class Card extends Component {
             }
            <br/> <br/>
          </div>
-         <Button tooltipLabel="Open Wikipedia"
-           href={"https://" + item.lang + ".wikipedia.org/wiki/Special:Search?search=" + item.label}
-           target="topic-window"
-           icon
-           secondary
-           iconClassName="fa fa-wikipedia-w fa-lg" />
          {
            item.newsCount > 0 ?
             <Button tooltipLabel="Open News"
@@ -242,18 +291,7 @@ class Card extends Component {
              secondary
              iconClassName="fa fa-newspaper-o fa-lg" /> : ""
          }
-         <Button tooltipLabel="Search in Google News"
-           href={"https://google.com/search?tbm=nws&q=" + item.label}
-           target="topic-window"
-           icon
-           secondary
-           iconClassName="fa fa-google fa-lg" />
-         <Button tooltipLabel="Open YouTube"
-           href={"https://www.youtube.com/results?q=" + item.label}
-           target="topic-window"
-           icon
-           secondary
-           iconClassName="fa fa-youtube fa-lg" />
+         <MoreActions item={item}/>
       </Paper>
     );
   }
