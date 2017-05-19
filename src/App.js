@@ -363,7 +363,7 @@ class App extends Component {
 
        <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} preventDefaultTouchmoveEvent={true} >
           <div className="md-grid">
-            <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily/limits.json" onChange={this.dateChanged} />
+            <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily_cat/limits.json" onChange={this.dateChanged} />
           </div>
           {items}
         </Swipeable>
