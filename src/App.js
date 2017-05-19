@@ -195,11 +195,11 @@ class NewsSidePanel extends Component {
          closeOnNavItemClick={false}
          onVisibilityToggle={this.toggleNewsDrawer}
          type={Drawer.DrawerTypes.TEMPORARY}
-         style={{ zIndex: 100 }}
+         style={{ zIndex: 100, background: "url('news-bg.png')" }}
          className="md-grid"
          header={
              <Toolbar
-               title={ <span style={{fontSize: "15px", whiteSpace: "normal"}}> {this.state.label} </span> }
+               title={ <span style={{fontSize: "15px", whiteSpace: "normal", color: "white", textShadow: "1px 1px 2px #000000" }}> {this.state.label} </span> }
                actions={<Button icon onClick={() => this.toggleNewsDrawer(false)} iconClassName="fa fa-caret-left fa-lg" />}
                className="md-divider-border md-divider-border--bottom"
              /> }
@@ -212,7 +212,7 @@ class Card extends Component {
   render() {
     const item = this.props.item;
     return (
-      <Paper key={"paper"+item.position} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em"}} >
+      <Paper key={"paper"+item.position} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em", background: "white"}} >
         <div style={{overflow: "hidden"}}>
           <LazyLoad height="200px">
             <div style={{maxHeight: "26em", overflow: "hidden"}}>
@@ -220,7 +220,11 @@ class Card extends Component {
             </div>
           </LazyLoad> <br/>
             #{item.position+1}
-            &nbsp; {item.label} <sub>({item.lang})</sub>
+            &nbsp; {item.label}
+            {
+              item.lang === "en"
+              ? "" : <sub>({item.lang})</sub>
+            }
            <br/> <br/>
          </div>
          <Button tooltipLabel="Open Wikipedia"
@@ -315,21 +319,36 @@ class App extends Component {
     var items = "";
     var cnt = 1;
     if (this.state.loading) {
-      <LinearProgress />
+      items = <LinearProgress />
     } else {
       items = this.state.dailyCats.map((cat, i) => {
         const recordPapers = cat.records.map((record, j) =>
-          <Card key={"card" + cnt++} item={record} onNewsButtonClicked={() => this.newsButtonClicked(record)} />
+          <Card key={"card" + cnt++} item={record} onNewsButtonClicked={() => this.newsButtonClicked(record)}  />
         );
-        return (
-          <div key={"card" + i} className="md-grid" style={{overflow: "hidden"}}>
-            <div className="md-cell md-cell--12">
-              { cat.category === "" ? <h3>Free out of category</h3> :
-              <h3 style={{whiteSpace: "normal"}}>{cat.category} <sub>({cat.lang})</sub></h3> }
+        if (cat.category === "") {
+          return (
+            <div key={"card" + i} className="md-grid" style={{overflow: "hidden" }}>
+              {recordPapers}
             </div>
-            {recordPapers}
-          </div>
-        );
+          );
+        } else {
+          return (
+
+            <div key={"card" + i} className="md-grid" style={{overflow: "hidden" }}>
+              <Paper zDepth={3} className="md-grid md-cell md-cell--12" style={{overflow: "hidden", background: "url('cubicon.png')", backgroundSize: "35pt 20pt", backgroundColor: "#cc3344"}} >
+                <div className="md-cell md-cell--12">
+                  <h3 style={{whiteSpace: "normal", color: "white", textShadow: "1px 1px 3px black"}}>{cat.category}
+                    {
+                      cat.lang === "" || cat.lang === "en"
+                      ? "" : <sub>({cat.lang})</sub>
+                    }
+                  </h3>
+                </div>
+                {recordPapers}
+              </Paper>
+            </div>
+          );
+        }
       });
     }
 
@@ -342,7 +361,7 @@ class App extends Component {
           style={{background: "url('toolbar-bg.jpg')", fontSize: "18px"}}
          />
 
-       <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} preventDefaultTouchmoveEvent={true}  >
+       <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} preventDefaultTouchmoveEvent={true} >
           <div className="md-grid">
             <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily/limits.json" onChange={this.dateChanged} />
           </div>
