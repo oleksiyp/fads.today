@@ -8,7 +8,6 @@ import Paper from 'react-md/lib/Papers';
 import Drawer from 'react-md/lib/Drawers';
 import Divider from 'react-md/lib/Dividers';
 import Media from 'react-md/lib/Media/Media';
-import CircularProgress from 'react-md/lib/Progress/CircularProgress';
 import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import List from 'react-md/lib/Lists/List';
 import ListItem from 'react-md/lib/Lists/ListItem';
@@ -148,7 +147,7 @@ class NewsSidePanel extends Component {
     axios.get('daily_cat/' + date + '/' + position + ".json")
     .then(res => {
       this.setState(update(this.state, {$merge:
-        {loading: false, news: res.data}
+        {loading: true, news: res.data}
       }));
     });
   }
@@ -189,7 +188,9 @@ class NewsSidePanel extends Component {
   }
 
   render() {
-    const content = this.state.loading ? [ <CircularProgress id="newsLoader" key="newsLoader" /> ] : this.renderNews()
+    const content = this.state.loading
+      ? []
+      : this.renderNews()
 
     return (
        <Drawer
@@ -207,7 +208,10 @@ class NewsSidePanel extends Component {
                actions={<Button icon onClick={() => this.toggleNewsDrawer(false)} iconClassName="fa fa-caret-left fa-lg" />}
                className="md-divider-border md-divider-border--bottom"
              /> }
-         />);
+         >
+          { this.state.loading ? <LinearProgress id="newsLoader" key="newsLoader" /> : "" }
+        </Drawer>
+       );
   }
 }
 
