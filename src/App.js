@@ -7,7 +7,6 @@ import DatePicker from 'react-md/lib/Pickers/DatePickerContainer';
 import Paper from 'react-md/lib/Papers';
 import Drawer from 'react-md/lib/Drawers';
 import Divider from 'react-md/lib/Dividers';
-import Media from 'react-md/lib/Media/Media';
 import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import List from 'react-md/lib/Lists/List';
 import ListItem from 'react-md/lib/Lists/ListItem';
@@ -147,7 +146,7 @@ class NewsSidePanel extends Component {
     axios.get('daily_cat/' + date + '/' + position + ".json")
     .then(res => {
       this.setState(update(this.state, {$merge:
-        {loading: true, news: res.data}
+        {loading: false, news: res.data}
       }));
     });
   }
@@ -167,9 +166,7 @@ class NewsSidePanel extends Component {
                 <Button primary label={news.title} onClick={() => window.location = news.url} />
               </div>
               <div className="md-cell md-cell--12">
-                <Media aspectRatio="4-3">
-                  <img src={news.urlToImage} role="presentation" />
-                </Media>
+                <img src={news.urlToImage} role="presentation" style={{width: "100%"}} />
               </div>
               <div className="md-cell md-cell--12">
                 {news.description}
