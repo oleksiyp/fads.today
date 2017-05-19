@@ -12,7 +12,6 @@ import CircularProgress from 'react-md/lib/Progress/CircularProgress';
 import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import List from 'react-md/lib/Lists/List';
 import ListItem from 'react-md/lib/Lists/ListItem';
-import MenuButton from 'react-md/lib/Menus/MenuButton';
 import Dialog from 'react-md/lib/Dialogs';
 import FontIcon from 'react-md/lib/FontIcons';
 import axios from 'axios';
@@ -231,10 +230,11 @@ class MoreActions extends Component {
            className="menu-example"
            onClick={() => this.toggleDialog(true)}>
        <Dialog
-         title="More actions"
+         title={item.label}
          onHide={() => this.toggleDialog(false)}
          visible={this.state.visible} >
          <List>
+           <img src={item.thumbnail} alt={item.label} style={{width: "66%"}} />
            <ListItem
              leftIcon={<FontIcon
                iconClassName="fa fa-wikipedia-w"/>}
@@ -395,7 +395,7 @@ class App extends Component {
         <Helmet title="fads today" />
         <Toolbar
           colored
-          title={<div style={{fontSize: "17px", overflow: "hidden"}}> {"What is happening on " + moment(this.dateOrToday()).format("DD MMM YYYY")} </div>}
+          title={<div style={{fontSize: "17px", overflow: "hidden"}}> {"What's happening on " + moment(this.dateOrToday()).format("DD MMM YYYY")} </div>}
           style={{background: "url('toolbar-bg.jpg')", fontSize: "18px"}}
          />
 
