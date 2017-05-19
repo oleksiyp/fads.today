@@ -1,4 +1,6 @@
 import './App.scss';
+import './md-icons.css';
+import 'roboto-fontface/css/roboto/sass/roboto-fontface.scss'
 import React, { Component } from 'react';
 import Toolbar from 'react-md/lib/Toolbars';
 import Helmet from 'react-helmet';
@@ -231,6 +233,7 @@ class MoreActions extends Component {
            className="menu-example"
            onClick={() => this.toggleDialog(true)}>
        <Dialog
+         id={"moreActions" + item.position}
          title={item.label}
          onHide={() => this.toggleDialog(false)}
          visible={this.state.visible} >
@@ -358,7 +361,7 @@ class App extends Component {
     var items = "";
     var cnt = 1;
     if (this.state.loading) {
-      items = <LinearProgress />
+      items = <LinearProgress id="itemLoader" />
     } else {
       items = this.state.dailyCats.map((cat, i) => {
         const recordPapers = cat.records.map((record, j) =>
