@@ -161,9 +161,9 @@ class NewsSidePanel extends Component {
 
   renderNews() {
     const news = this.state.news;
-    const newsList = news.map((news, i) => {
+    var newsList = news.map((news, i) => {
       return (
-            <Paper key={"news" + i} zDepth={1} className="md-grid md-cell md-cell--12" style={{overflow: "hidden"}} >
+            <Paper key={"news" + i} zDepth={1} className="md-grid md-cell md-cell--4" style={{overflow: "hidden"}} >
               <div className="md-cell md-cell--12">
                 <Button primary label={news.title} onClick={() => window.location = news.url} />
               </div>
@@ -176,6 +176,7 @@ class NewsSidePanel extends Component {
             </Paper>
         );
     });
+    newsList = [ <div className="md-grid"> {newsList} </div> ]
     newsList.push(<Divider key="div" />);
     newsList.push(<Button key="poweredby"
                href="https://newsapi.org"
@@ -194,21 +195,22 @@ class NewsSidePanel extends Component {
     return (
        <Drawer
          visible={this.state.newsDrawerVisible}
-         position="left"
-         navItems={content}
+         position="right"
          closeOnNavItemClick={false}
+         navItems={content}
          onVisibilityToggle={this.toggleNewsDrawer}
          type={Drawer.DrawerTypes.TEMPORARY}
          style={{ zIndex: 100, background: "url('news-bg.png')" }}
-         className="md-grid"
          header={
              <Toolbar
                title={ <span style={{fontSize: "15px", whiteSpace: "normal", color: "white", textShadow: "1px 1px 2px #000000" }}> {this.state.label} </span> }
-               actions={<Button icon onClick={() => this.toggleNewsDrawer(false)} iconClassName="fa fa-caret-left fa-lg" />}
+               actions={<Button icon onClick={() => this.toggleNewsDrawer(false)} iconClassName="fa fa-close fa-lg" />}
                className="md-divider-border md-divider-border--bottom"
              /> }
          >
-          { this.state.loading ? <LinearProgress id="newsLoader" key="newsLoader" /> : "" }
+          { this.state.loading
+            ? <LinearProgress id="newsLoader" key="newsLoader" />
+            : ""  }
         </Drawer>
        );
   }
