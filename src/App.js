@@ -1,54 +1,21 @@
 import './App.scss';
 import './md-icons.css';
+import 'roboto-fontface/css/roboto/sass/roboto-fontface.scss'
+
 import DateNavigator from './DateNavigator.js';
 import NewsSidePanel from './NewsSidePanel.js';
-import MoreActionsPanel from './MoreActionsPanel.js';
-import 'roboto-fontface/css/roboto/sass/roboto-fontface.scss'
+import Card from './Card.js';
+
 import React, { Component } from 'react';
 import Toolbar from 'react-md/lib/Toolbars';
 import Helmet from 'react-helmet';
-import Button from 'react-md/lib/Buttons/Button';
-import Paper from 'react-md/lib/Papers';
 import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
+import Button from 'react-md/lib/Buttons/Button';
+import Paper from 'react-md/lib/Papers';
 import Swipeable from 'react-swipeable'
-import LazyLoad from 'react-lazyload';
-
-class Card extends Component {
-  render() {
-    const item = this.props.item;
-    return (
-      <Paper key={"paper"+item.position} zDepth={1} className="md-cell md-cell--2" style={{textAlign: "center", paddingTop: "1em", paddingBottom: "1em", background: "white"}} >
-        <div style={{overflow: "hidden"}}>
-          <LazyLoad height="200px">
-            <div style={{maxHeight: "26em", overflow: "hidden"}}>
-              <img src={item.thumbnail} alt={item.label} style={{width: "88%"}} />
-            </div>
-          </LazyLoad> <br/>
-            #{item.position+1}
-            &nbsp; {item.label}
-            {
-              item.lang === "en"
-              ? "" : <sub>({item.lang})</sub>
-            }
-           <br/> <br/>
-         </div>
-         {
-           item.newsCount > 0 ?
-            <Button tooltipLabel="Open News"
-             onClick={this.props.onNewsButtonClicked}
-             target="topic-window"
-             icon
-             secondary
-             iconClassName="fa fa-newspaper-o fa-lg" /> : ""
-         }
-         <MoreActionsPanel item={item}/>
-      </Paper>
-    );
-  }
-}
 
 class App extends Component {
   constructor(props) {
