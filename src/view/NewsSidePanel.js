@@ -27,7 +27,7 @@ export default class NewsSidePanel extends Component {
   }
 
   openNews(date, position, label) {
-    if (!date || !position) {
+    if (!date) {
       return;
     }
     const dataUrl = 'daily_cat/' + moment(date).format("YYYYMMDD") + '/' + position + ".json"
