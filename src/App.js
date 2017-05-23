@@ -3,10 +3,10 @@ import './md-icons.css';
 import 'roboto-fontface/css/roboto/sass/roboto-fontface.scss'
 
 import Router from './Router.js';
-import DateNavigator from './DateNavigator.js';
-import NewsSidePanel from './NewsSidePanel.js';
-import CategoriesView from './CategoriesView.js';
-import MoreActionsPanel from './MoreActionsPanel.js';
+import DateNavigator from './view/DateNavigator.js';
+import NewsSidePanel from './view/NewsSidePanel.js';
+import CategoriesView from './view/CategoriesView.js';
+import MoreActionsPanel from './view/MoreActionsPanel.js';
 
 import CategoryRecordsProvider from './providers/CategoryRecordsProvider.js';
 
