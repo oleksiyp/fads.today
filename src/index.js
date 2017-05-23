@@ -4,8 +4,8 @@ import App from './App';
 
 
 function handleNewHash() {
-  var date = window.location.hash.replace(/^#\/?|\/$/g, '');
-  var application = <App date={date} />;
+  var location = window.location.hash.replace(/^#/, '');
+  var application = <App location={location} />;
   ReactDOM.render(application, document.getElementById('root'));
 }
 

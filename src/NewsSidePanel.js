@@ -6,32 +6,43 @@ import Drawer from 'react-md/lib/Drawers';
 import Toolbar from 'react-md/lib/Toolbars';
 import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import axios from 'axios';
+import moment from 'moment';
 import update from 'react-addons-update';
 
 export default class NewsSidePanel extends Component {
   constructor(props) {
     super(props);
-    this.state = {newsDrawerVisible: false, loading: true, label: ""};
-    this.toggleNewsDrawer = this.toggleNewsDrawer.bind(this);
+    this.state = {loading: true};
     this.renderNews = this.renderNews.bind(this);
   }
 
+  componentDidMount() {
+    const {date, position, title} = this.props;
+    this.openNews(date, position, title);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const {date, position, title} = nextProps;
+    this.openNews(date, position, title);
+  }
+
   openNews(date, position, label) {
+    if (!date || !position) {
+      return;
+    }
+    const dataUrl = 'daily_cat/' + moment(date).format("YYYYMMDD") + '/' + position + ".json"
+    if (this.state['dataUrl'] && this.state.dataUrl === dataUrl) {
+      return;
+    }
     this.setState(update(this.state, {$merge:
-      {newsDrawerVisible: true, loading: true, label: label}
+      {loading: true, dataUrl: dataUrl}
     }));
-    axios.get('daily_cat/' + date + '/' + position + ".json")
+    axios.get(dataUrl)
     .then(res => {
       this.setState(update(this.state, {$merge:
         {loading: false, news: res.data}
       }));
     });
-  }
-
-  toggleNewsDrawer(visible) {
-    this.setState(update(this.state, {$merge:
-      {newsDrawerVisible: visible}
-    }));
   }
 
   renderNews() {
@@ -51,7 +62,7 @@ export default class NewsSidePanel extends Component {
             </Paper>
         );
     });
-    newsList = [ <div className="md-grid"> {newsList} </div> ]
+    newsList = [ <div key="news" className="md-grid"> {newsList} </div> ]
     newsList.push(<Divider key="div" />);
     newsList.push(<Button key="poweredby"
                href="https://newsapi.org"
@@ -69,23 +80,24 @@ export default class NewsSidePanel extends Component {
 
     return (
        <Drawer
-         visible={this.state.newsDrawerVisible}
+         visible={this.props.opened}
          position="right"
          closeOnNavItemClick={false}
          navItems={content}
-         onVisibilityToggle={this.toggleNewsDrawer}
+         onVisibilityToggle={this.props.onVisibilityToggle}
          type={Drawer.DrawerTypes.TEMPORARY}
          style={{ zIndex: 100, background: "url('news-bg.png')" }}
          header={
              <Toolbar
-               title={ <span style={{fontSize: "15px", whiteSpace: "normal", color: "white", textShadow: "1px 1px 2px #000000" }}> {this.state.label} </span> }
-               actions={<Button icon onClick={() => this.toggleNewsDrawer(false)} iconClassName="fa fa-close fa-lg" />}
+               key="toolbar"
+               title={ <span style={{fontSize: "15px", whiteSpace: "normal", color: "white", textShadow: "1px 1px 2px #000000" }}> {this.props.title} </span> }
+               actions={<Button icon onClick={() => this.props.onVisibilityToggle(false)} iconClassName="fa fa-close fa-lg" />}
                className="md-divider-border md-divider-border--bottom"
              /> }
          >
           { this.state.loading
             ? <LinearProgress id="newsLoader" key="newsLoader" />
-            : ""  }
+            : null  }
         </Drawer>
        );
   }

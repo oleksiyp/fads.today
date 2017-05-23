@@ -3,31 +3,24 @@ import FontIcon from 'react-md/lib/FontIcons';
 import List from 'react-md/lib/Lists/List';
 import ListItem from 'react-md/lib/Lists/ListItem';
 import Dialog from 'react-md/lib/Dialogs';
-import Button from 'react-md/lib/Buttons/Button';
 
 export default class MoreActionsPanel extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {visible: false};
+  emptyItem() {
+    return {
+      label: "",
+      thumbnail: "",
+      lang: ""
+    };
   }
-
-  toggleDialog(visible) {
-    this.setState({visible: visible});
-  }
-
   render() {
-    const item = this.props.item
+    const item = this.props.item ? this.props.item : this.emptyItem();
+
     return (
-      <Button
-           icon
-           iconClassName="fa fa-ellipsis-h"
-           className="menu-example"
-           onClick={() => this.toggleDialog(true)}>
        <Dialog
-         id={"moreActions" + item.position}
+         id={"moreActions"}
          title={item.label}
-         onHide={() => this.toggleDialog(false)}
-         visible={this.state.visible} >
+         onHide={() => this.props.onVisibilityToggle(false)}
+         visible={this.props.opened} >
          <List>
            <img src={item.thumbnail} alt={item.label} style={{width: "66%"}} />
            <ListItem
@@ -51,8 +44,7 @@ export default class MoreActionsPanel extends Component {
              primaryText="Search Twitter"
              onClick={() => window.location = "https://twitter.com/search?q=" + item.label} />
            </List>
-         </Dialog>
-       </Button>
+       </Dialog>
     );
    }
 }

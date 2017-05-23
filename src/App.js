@@ -2,67 +2,136 @@ import './App.scss';
 import './md-icons.css';
 import 'roboto-fontface/css/roboto/sass/roboto-fontface.scss'
 
+import Router from './Router.js';
 import DateNavigator from './DateNavigator.js';
 import NewsSidePanel from './NewsSidePanel.js';
-import Card from './Card.js';
+import CategoriesView from './CategoriesView.js';
+import MoreActionsPanel from './MoreActionsPanel.js';
+
+import CategoryRecordsProvider from './providers/CategoryRecordsProvider.js';
 
 import React, { Component } from 'react';
 import Toolbar from 'react-md/lib/Toolbars';
 import Helmet from 'react-helmet';
-import LinearProgress from 'react-md/lib/Progress/LinearProgress';
-import axios from 'axios';
 import update from 'react-addons-update';
 import moment from 'moment';
 import Button from 'react-md/lib/Buttons/Button';
-import Paper from 'react-md/lib/Papers';
+import LinearProgress from 'react-md/lib/Progress/LinearProgress';
 import Swipeable from 'react-swipeable'
 
-class App extends Component {
+export default class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {loading: true, date: this.props.date};
     this.dateChanged = this.dateChanged.bind(this);
     this.swippedLeft = this.swippedLeft.bind(this);
     this.swippedRight = this.swippedRight.bind(this);
     this.newsButtonClicked = this.newsButtonClicked.bind(this);
+    this.closeNewsSidePanel = this.closeNewsSidePanel.bind(this);
+    this.categoryLimitsLoaded = this.categoryLimitsLoaded.bind(this);
+    this.categoryDataLoaded = this.categoryDataLoaded.bind(this);
+    this.moreActionsClicked = this.moreActionsClicked.bind(this);
+    this.closeMoreActionsPanel = this.closeMoreActionsPanel.bind(this);
+
+    this.router = new Router();
+    this.state = {
+      newsOpened: false,
+      moreActionsOpened: false,
+      categoryDataLoading: true,
+      limits: null
+    }
+  }
+
+  componentDidMount() {
+    this.setState(this.router.parseLocation(this.props.location));
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState(update(this.state, {$merge:
-      {date: nextProps.date}
-    }));
-    this.dateChanged(moment(nextProps.date, "YYYYMMDD"));
+    this.setState(this.router.parseLocation(nextProps.location));
   }
 
-  dateOrToday() {
-    const date = moment(this.state.date, "YYYYMMDD");
-    if (date.isValid()) {
-      return date.toDate();
+  navigate(stateUpdate) {
+    this.setState((state) => update(state, {$merge: stateUpdate}));
+    history.pushState(null,null, '#' + this.router.formatLocation(stateUpdate));
+    window.ga('set', 'page', location.pathname+location.search+location.hash);
+    window.ga('send', 'pageview');
+  }
+
+  dateChanged(dateObj) {
+    if (!this.state.hasLimits) {
+      return;
     }
-    return new Date();
-  }
 
+    const dateMax = moment.max(moment(dateObj), moment(this.state.limits.min));
+    const dateMinMax = moment.min(dateMax, moment(this.state.limits.max));
 
+    if (moment(this.state.date).isSame(moment(dateMinMax))) {
+      return;
+    }
 
-  dateChanged(dateObject) {
-    const date = moment(dateObject).format("YYYYMMDD");
-    this.setState(update(this.state, {$merge:
-      {loading: true, date: date}
-    }));
-    axios.get('daily_cat/' + date + '.json')
-    .then(res => {
-      history.pushState(null,null,'#' + date);
-      window.ga('set', 'page', location.pathname+location.search+location.hash);
-      window.ga('send', 'pageview');
-      this.setState(update(this.state, {$merge:
-        {loading: false, dailyCats: res.data}
-      }));
+    this.navigate({
+      date: dateMinMax.toDate(),
+      newsOpened: false,
+      moreActionsOpened: false
     });
   }
 
+  categoryLimitsLoaded(stateUpdate) {
+    this.setState(update(this.state, {$merge: stateUpdate}));
+    this.dateChanged(this.state.date);
+  }
+
+  categoryDataLoaded(e) {
+    this.setState((state) => update(state, {$merge: {
+        categoryDataLoading: e.loading,
+        categoryData: e.data,
+        categoryDataDate: e.date
+      }
+    }));
+    if (e.data && this.state.moreActionsOpened && this.state['moreActionsPosition']) {
+      var rec = null
+      for (var cat of e.data) {
+        for (var record of cat.records) {
+          if (record.position === parseInt(this.state.moreActionsPosition, 10)) {
+            rec = record;
+            break;
+          }
+        }
+      }
+      this.setState((state) => update(state, {$merge: {
+        moreActionsItem: rec
+      }}))
+    }
+  }
+
   newsButtonClicked(record) {
-    const date = moment(this.dateOrToday()).format("YYYYMMDD");
-    this.refs.newsSidePanel.openNews(date, record.position, record.label);
+    this.navigate({
+      newsOpened: true,
+      date: this.state.date,
+      newsPosition: record.position,
+      newsTitle: record.label,
+    });
+  }
+
+  moreActionsClicked(record) {
+    this.navigate({
+      moreActionsOpened: true,
+      date: this.state.date,
+      moreActionsPosition: record.position,
+      moreActionsTitle: record.label,
+      moreActionsItem: record
+    });
+  }
+
+  closeNewsSidePanel() {
+    if (this.state.newsOpened) {
+      history.back();
+    }
+  }
+
+  closeMoreActionsPanel() {
+    if (this.state.moreActionsOpened) {
+      history.back();
+    }
   }
 
   swippedLeft(e) {
@@ -74,57 +143,56 @@ class App extends Component {
   }
 
   render() {
-    var items = "";
-    var cnt = 1;
-    if (this.state.loading) {
-      items = <LinearProgress id="itemLoader" />
-    } else {
-      items = this.state.dailyCats.map((cat, i) => {
-        const recordPapers = cat.records.map((record, j) =>
-          <Card key={"card" + cnt++} item={record} onNewsButtonClicked={() => this.newsButtonClicked(record)}  />
-        );
-        if (cat.category === "") {
-          return (
-            <div key={"card" + i} className="md-grid" style={{overflow: "hidden" }}>
-              {recordPapers}
-            </div>
-          );
-        } else {
-          return (
-            <div key={"card" + i} className="md-grid" style={{overflow: "hidden" }}>
-              <Paper zDepth={3} className="md-grid md-cell md-cell--12" style={{overflow: "hidden", background: "url('cubicon.png')", backgroundSize: "35pt 20pt", backgroundColor: "#cc3344"}} >
-                <div className="md-cell md-cell--12">
-                  <h3 style={{whiteSpace: "normal", color: "white", textShadow: "1px 1px 3px black"}}>{cat.category}
-                    {
-                      cat.lang === "" || cat.lang === "en"
-                      ? "" : <sub>({cat.lang})</sub>
-                    }
-                  </h3>
-                </div>
-                {recordPapers}
-              </Paper>
-            </div>
-          );
-        }
-      });
-    }
-
     return (
       <div>
         <Helmet title="fads today" />
         <Toolbar
           colored
-          title={<div style={{fontSize: "17px", overflow: "hidden"}}> {"What's happening on " + moment(this.dateOrToday()).format("DD MMM YYYY")} </div>}
+          title={<div style={{fontSize: "17px", overflow: "hidden"}}> {"What's happening on " + moment(this.state.date).format("DD MMM YYYY")} </div>}
           style={{background: "url('toolbar-bg.jpg')", fontSize: "18px"}}
          />
 
-       <Swipeable onSwipedLeft={this.swippedLeft}  onSwipedRight={this.swippedRight} delta={25} flickThreshold={0.7} preventDefaultTouchmoveEvent={true} >
+       <Swipeable
+         onSwipedLeft={this.swippedLeft}
+         onSwipedRight={this.swippedRight}
+         delta={25}
+         flickThreshold={0.7}
+         preventDefaultTouchmoveEvent={true} >
+
           <div className="md-grid">
-            <DateNavigator ref="dateNav" value={this.dateOrToday()} limitsUrl="daily_cat/limits.json" onChange={this.dateChanged} />
+            <DateNavigator ref="dateNav"
+              date={this.state.date}
+              limits={this.state.limits}
+              onChange={this.dateChanged} />
           </div>
-          {items}
+
+          <CategoryRecordsProvider
+            date={this.state.date}
+            onLoad={this.categoryDataLoaded}
+            onLimitsLoaded={this.categoryLimitsLoaded} />
+
+          {
+            this.state.categoryDataLoading
+            ? <LinearProgress id="itemLoader" />
+            : <CategoriesView
+                categoryData={this.state.categoryData}
+                onNewsButtonClicked={this.newsButtonClicked}
+                onMoreActionsClicked={this.moreActionsClicked} />
+          }
         </Swipeable>
-        <NewsSidePanel ref="newsSidePanel" />
+
+        <NewsSidePanel
+            opened={this.state.newsOpened}
+            date={this.state.date}
+            position={this.state.newsPosition}
+            title={this.state.newsTitle}
+            onVisibilityToggle={this.closeNewsSidePanel}/>
+
+        <MoreActionsPanel
+            opened={this.state.moreActionsOpened && !!this.state['moreActionsItem']}
+            item={this.state.moreActionsItem}
+            onVisibilityToggle={this.closeMoreActionsPanel} />
+
         <Toolbar
           style={{background: "url('toolbar-bg-bottom.jpg')", height: "160px"}}
           actions={[<Button
@@ -141,5 +209,3 @@ class App extends Component {
     );
     }
 }
-
-export default App;

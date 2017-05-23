@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
 import Button from 'react-md/lib/Buttons/Button';
 import DatePicker from 'react-md/lib/Pickers/DatePickerContainer';
-import update from 'react-addons-update';
 import moment from 'moment';
-import axios from 'axios';
 
 export default class DateNavigator extends Component {
   constructor(props) {
     super(props);
-    this.state = {hasLimits: false, value: null, limits: {min: null, max: null}};
     this.pickerChanged = this.pickerChanged.bind(this);
     this.backButton = this.backButton.bind(this);
     this.forwardButton = this.forwardButton.bind(this);
@@ -18,20 +15,11 @@ export default class DateNavigator extends Component {
   }
 
   componentDidMount() {
-    axios.get(this.props.limitsUrl)
-      .then(res => {
-        const parseDate = (str) => moment(str, "YYYYMMDD").toDate();
-        const limits = {min: parseDate(res.data.min), max: parseDate(res.data.max)}
-        this.setState(update(this.state, {$merge: {hasLimits: true, limits: limits}}));
-        this.changeDate(moment(this.props.value));
-      });
     document.addEventListener("keydown", this.handleKeyDown, false);
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState(update(this.state, {$merge:
-      {value: nextProps.value}
-    }));
+    this.changeDate(nextProps.date);
   }
 
   handleKeyDown(event) {
@@ -44,42 +32,27 @@ export default class DateNavigator extends Component {
   }
 
   backButton() {
-    this.changeDate(moment(this.state.value).subtract(1, 'days'));
+    this.changeDate(moment(this.props.date).subtract(1, 'days'));
   }
 
   forwardButton() {
-    this.changeDate(moment(this.state.value).add(1, 'days'));
+    this.changeDate(moment(this.props.date).add(1, 'days'));
   }
 
-  changeDate(dateObject) {
-    if (!this.state.hasLimits) return;
-
-    dateObject = moment.max(dateObject, moment(this.state.limits.min));
-    dateObject = moment.min(dateObject, moment(this.state.limits.max));
-
-    if (this.state.value != null && moment(this.state.value).isSame(dateObject)) {
-      return;
-    }
-
-    if (this.props.onChange) {
-      this.props.onChange(dateObject.toDate());
-    } else {
-      this.setState(update(this.state, {$merge:
-        {value: dateObject}
-      }));
-    }
+  changeDate(dateObj) {
+    this.props.onChange(moment(dateObj).toDate());
   }
 
   pickerChanged(dateString, dateObject, event) {
-    this.changeDate(moment(dateObject));
+    this.changeDate(dateObject);
   }
 
   hasBackPages() {
-    return this.state.hasLimits && moment(this.state.limits.min).isBefore(this.state.value)
+    return this.props.limits && moment(this.props.limits.min).isBefore(this.props.date)
   }
 
    hasForwardPages() {
-    return this.state.hasLimits && moment(this.state.limits.max).isAfter(this.state.value)
+    return this.props.limits && moment(this.props.limits.max).isAfter(this.props.date)
   }
 
   render() {
@@ -98,10 +71,10 @@ export default class DateNavigator extends Component {
          id="date"
          inline={true}
          fullWidth={false}
-         disabled={!this.state.hasLimits}
-         value={this.state.value}
-         minDate={this.state.limits.min}
-         maxDate={this.state.limits.max}
+         disabled={!this.props.limits}
+         value={this.props.date}
+         minDate={this.props.limits ? this.props.limits.min : null}
+         maxDate={this.props.limits ? this.props.limits.max : null}
          onChange={this.pickerChanged} />
      </div>
      <div style={{float:"left", paddingTop: "2px"}}>

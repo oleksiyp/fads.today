@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import MoreActionsPanel from './MoreActionsPanel.js';
 import Button from 'react-md/lib/Buttons/Button';
 import Paper from 'react-md/lib/Papers';
 import LazyLoad from 'react-lazyload';
@@ -30,9 +29,13 @@ export default class Card extends Component {
              target="topic-window"
              icon
              secondary
-             iconClassName="fa fa-newspaper-o fa-lg" /> : ""
+             iconClassName="fa fa-newspaper-o fa-lg" /> : null
          }
-         <MoreActionsPanel item={item}/>
+         <Button
+              icon
+              iconClassName="fa fa-ellipsis-h"
+              className="menu-example"
+              onClick={this.props.onMoreActionsClicked} />
       </Paper>
     );
   }
